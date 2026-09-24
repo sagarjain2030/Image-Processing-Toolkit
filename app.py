@@ -9,6 +9,15 @@ st.set_page_config (
     initial_sidebar_state="expanded",
 )
 
+def create_main_content(main_content):
+    main_content.write("This is where we show content")
+    main_content.write("")
+    main_content.write(st.session_state["Function"])
+    uploaded_file = main_content.file_uploader(label="Upload an image",
+                               type = ["png", "jpg","jpeg", "gif"],)
+    if uploaded_file is not None:
+        main_content.image(uploaded_file)
+
 def run():
     header = st.container()
     header.title("Image Processing Toolkit")
@@ -16,9 +25,8 @@ def run():
         st.session_state["Function"] = None
     add_sidebar_menu()
     main_content, doc_panel = st.columns([3, 1])
-    main_content.write("This is where we show content")
-    main_content.write("")
-    main_content.write(st.session_state["Function"])
+    create_main_content(main_content)
+
     doc_panel.write("It is document sidebar")
 
 def on_click_function(string:str):
