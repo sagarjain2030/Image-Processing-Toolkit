@@ -14,13 +14,71 @@ st.set_page_config (
 sidebar_dictionary = { "category1": ["Function1", "Function2"],
 "category2": ["Function3", "Function4"]}
 
+def process_function1(image):
+    return image
+
+def process_function2(image):
+    return image
+
+def process_function3(image):
+    return image
+
+def process_function4(image):
+    return image
+
+
+def function1_page(main_content, image):
+    main_content.write("Inside function1 page")
+    if image is not None:
+        out = process_function1(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
+
+def function2_page(main_content,image):
+    main_content.write("Inside function2 page")
+    if image is not None:
+        out = process_function2(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
+
+def function3_page(main_content, image):
+    main_content.write("Inside function3 page")
+    if image is not None:
+        out = process_function3(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
+
+def function4_page(main_content, image):
+    main_content.write("Inside function4 page")
+    if image is not None:
+        out = process_function4(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
+
+function_dictionary = {
+    "Function1" : function1_page,
+    "Function2" : function2_page,
+    "Function3": function3_page,
+    "Function4" : function4_page,
+}
+
+process_dictionary = {
+    "Function1" : process_function1,
+    "Function2" : process_function2,
+    "Function3": process_function3,
+    "Function4" : process_function4,
+}
 
 def create_main_content(main_content):
     main_content.write("This is where we show content")
     main_content.write("")
-    main_content.write(st.session_state["Function"])
     uploaded_file = main_content.file_uploader(label="Upload an image",
                                type = ["png", "jpg","jpeg"],)
+    opencv_img = None
     if uploaded_file is not None:
         main_content.write(f"Name :{uploaded_file.name}" )
         main_content.write(f"Type :{uploaded_file.type}" )
@@ -41,20 +99,22 @@ def create_main_content(main_content):
         main_content.write(opencv_img.size)
         main_content.write(opencv_img.shape)
         main_content.write(opencv_img.ndim)
-
+    if st.session_state["Function"] is not None:
+        main_content.write(st.session_state["Function"])
+        s = function_dictionary[st.session_state["Function"]]
+        s(main_content, opencv_img)
 
 def run():
     header = st.container()
     header.title("Image Processing Toolkit")
     if "Function" not in st.session_state:
         st.session_state["Function"] = None
-    add_sidebar_menu()
     main_content, doc_panel = st.columns([3, 1])
+    add_sidebar_menu()
     create_main_content(main_content)
-
     doc_panel.write("It is document sidebar")
 
-def on_click_function(string:str):
+def on_click_function(string:str,):
     st.session_state["Function"] = string
 
 def add_sidebar_menu():
