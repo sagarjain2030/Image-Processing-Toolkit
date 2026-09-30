@@ -26,6 +26,11 @@ def process_function3(image):
 def process_function4(image):
     return image
 
+def load_documentation(file_path):
+    text = None
+    with open(file_path) as f:
+        text = f.read()
+    return text
 
 def function1_page(main_content, image):
     main_content.write("Inside function1 page")
@@ -35,7 +40,7 @@ def function1_page(main_content, image):
     else:
         main_content.write("No image received")
 
-def function2_page(main_content,image):
+def function2_page(main_content, image):
     main_content.write("Inside function2 page")
     if image is not None:
         out = process_function2(image)
@@ -66,11 +71,11 @@ function_dictionary = {
     "Function4" : function4_page,
 }
 
-process_dictionary = {
-    "Function1" : process_function1,
-    "Function2" : process_function2,
-    "Function3": process_function3,
-    "Function4" : process_function4,
+doc_file_dictionary = {
+    "Function1" : "function1.md",
+    "Function2" : "function2.md",
+    "Function3": "function3.md",
+    "Function4" : "function4.md",
 }
 
 def create_main_content(main_content):
@@ -113,6 +118,13 @@ def run():
     add_sidebar_menu()
     create_main_content(main_content)
     doc_panel.write("It is document sidebar")
+    if st.session_state["Function"] is not None:
+        text = load_documentation("docs/" + doc_file_dictionary[st.session_state["Function"]])
+        doc_panel.markdown(text)
+    else :
+        text = load_documentation("docs/test.md")
+        doc_panel.markdown(text)
+
 
 def on_click_function(string:str,):
     st.session_state["Function"] = string
