@@ -27,10 +27,11 @@ def process_function4(image):
     return image
 
 def load_documentation(file_path):
-    text = None
-    with open(file_path) as f:
-        text = f.read()
-    return text
+    try:
+        with open(file_path) as f:
+            return f.read()
+    except FileNotFoundError:
+        return "### File not found"
 
 def function1_page(main_content, image):
     main_content.write("Inside function1 page")
@@ -99,15 +100,23 @@ def create_main_content(main_content):
         main_content.write(image.shape)
         main_content.write(image.ndim)
         opencv_img = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        main_content.write(type(opencv_img).__name__)
-        main_content.write(opencv_img.dtype)
-        main_content.write(opencv_img.size)
-        main_content.write(opencv_img.shape)
-        main_content.write(opencv_img.ndim)
+        if opencv_img is None:
+            main_content.write("Could not decode the uploaded image")
+        else:
+            main_content.write(type(opencv_img).__name__)
+            main_content.write(opencv_img.dtype)
+            main_content.write(opencv_img.size)
+            main_content.write(opencv_img.shape)
+            main_content.write(opencv_img.ndim)
     if st.session_state["Function"] is not None:
         main_content.write(st.session_state["Function"])
-        s = function_dictionary[st.session_state["Function"]]
-        s(main_content, opencv_img)
+        try :
+            s = function_dictionary[st.session_state["Function"]]
+        except KeyError :
+            main_content.write("Could not find function")
+        else:
+            s(main_content, opencv_img)
+
 
 def run():
     header = st.container()
