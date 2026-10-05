@@ -1,540 +1,319 @@
+Use this as the starting prompt for the new chat:
+
+```text
 # Project: Image Processing Toolkit
 
-## Goal
+I am building a reusable Image Processing Toolkit using:
 
-I am building a reusable **Image Processing Toolkit** using:
-
+- Python
 - Streamlit for UI
-- OpenCV for image-processing operations
-- NumPy for image-data handling
+- OpenCV for image processing
+- NumPy for image data handling
 - pytest for automated testing
 
-The project is being developed incrementally.
+The project is meant to be built incrementally while understanding the underlying concepts properly.
 
-Until now, the focus has deliberately been on understanding and building the surrounding application architecture before implementing real OpenCV operations.
+Important teaching/development style:
 
-Teaching style:
-
-1. Explain concepts before implementing them.
-2. Explain why they matter in this project.
+1. Explain concepts before implementation.
+2. Explain why something matters in this project.
 3. Do not dump a finished architecture immediately.
-4. Work through the actual project rather than doing excessive question/answer exercises.
-5. Let me implement things and correct problems when they appear.
+4. Work directly on the real project.
+5. Let me implement things and correct me where needed.
 6. Avoid premature abstractions.
-7. Do not create reusable systems merely because a roadmap topic exists.
-8. We are now ready to start real OpenCV operations.
+7. Do not create reusable systems just because they may be useful later.
+8. Refactor only when a real requirement or duplication justifies it.
+9. I want to understand Streamlit/OpenCV/NumPy, not just copy code.
+10. We will eventually deploy this application publicly.
 
 ---
 
-# Current Infrastructure Status
+# CURRENT PROJECT STRUCTURE
 
-```text
-Repository foundation        ✅
-Folder structure             ✅
-README architecture          ✅
-.gitignore                   ✅
-Git/develop workflow         ✅
-Minimal app.py               ✅
+Current structure is approximately:
 
-Application layout           ✅
-Image-input infrastructure   ✅
-Operation registry           ✅ basic
-Page contract                ✅ basic
-Processing contract          ✅ basic
+Image-Processing-Toolkit/
+│
+├── assets/
+│
+├── docs/
+│   ├── .gitkeep
+│   ├── function1.md
+│   ├── function2.md
+│   ├── function3.md
+│   ├── function4.md
+│   └── test.md
+│
+├── image_processing/
+│
+├── pages/
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_processing.py
+│
+├── ui/
+│   └── __init__.py
+│
+├── app.py
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
 
-Reusable UI components       ✅ concept understood; no extraction needed yet
-Documentation loader         ✅ basic
-Output handling              ✅ basic
-Error handling               ✅ basic
-Testing convention           ✅ basic
+Important note:
 
-First full OpenCV operation  ⬜ NEXT
-```
+The existing `pages/` directory has not yet been meaningfully used.
+
+We discussed that `pages/` has special meaning in Streamlit's built-in multipage system.
+
+Since I am building my own sidebar/navigation, we may later prefer something like:
+
+views/
+    home.py
+    imread.py
+    ...
+
+instead of using Streamlit's automatic `pages/` mechanism.
+
+Do NOT make this restructuring automatically. We should first decide what is actually needed for the Home page.
 
 ---
 
-# Current Application Layout
+# CURRENT app.py
 
-The app uses:
+Current code:
 
 ```python
-main_content, doc_panel = st.columns([3, 1])
-```
+import numpy as np
+import streamlit as st
+from streamlit.logger import get_logger
+import cv2
 
-Conceptually:
+LOGGER = get_logger(__name__)
 
-```text
-Sidebar                    Main Workspace              Documentation
-───────                    ──────────────              ─────────────
-navigation                 uploader                    selected-operation docs
-categories                 operation page
-operations                 processing result
-```
+st.set_page_config (
+    page_title="Image Processing Toolkit",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-Responsibilities:
-
-```text
-sidebar
-    navigation
-
-main_content
-    uploader
-    selected operation page
-    processing result
-
-doc_panel
-    documentation/help
-```
-
----
-
-# Navigation
-
-Dummy categories and operations are still being used:
-
-```text
-category1
-category2
-
-Function1
-Function2
-Function3
-Function4
-```
-
-Do not replace these prematurely unless we explicitly decide to start converting them into real operations.
-
-Navigation is based on:
-
-```python
 sidebar_dictionary = {
     "category1": ["Function1", "Function2"],
     "category2": ["Function3", "Function4"]
 }
-```
 
-Selected operation:
+def process_function1(image):
+    return image
 
-```python
-st.session_state["Function"]
-```
+def process_function2(image):
+    return image
 
-Callback:
+def process_function3(image):
+    return image
 
-```python
-def on_click_function(string: str):
-    st.session_state["Function"] = string
-```
+def process_function4(image):
+    return image
 
-Flow:
+def load_documentation(file_path):
+    try:
+        with open(file_path) as f:
+            return f.read()
+    except FileNotFoundError:
+        return "### File not found"
 
-```text
-button click
-    ↓
-callback changes session state
-    ↓
-Streamlit reruns
-    ↓
-normal rendering reads state
-```
-
-Callbacks do not render operation pages.
-
----
-
-# Image Input Infrastructure
-
-There is one common uploader.
-
-Pipeline:
-
-```text
-Streamlit UploadedFile
-        ↓
-uploaded_file.getvalue()
-        ↓
-bytes
-        ↓
-np.frombuffer(..., dtype=np.uint8)
-        ↓
-encoded-byte ndarray
-        ↓
-cv2.imdecode(..., cv2.IMREAD_COLOR)
-        ↓
-decoded OpenCV ndarray
-```
-
-Important:
-
-```python
-np.frombuffer(...)
-```
-
-does not decode the image.
-
-Actual decoding happens with:
-
-```python
-opencv_img = cv2.imdecode(
-    image,
-    cv2.IMREAD_COLOR
-)
-```
-
-Basic failed-decode handling has now been added:
-
-```python
-if opencv_img is None:
-    main_content.write("Could not decode the uploaded image")
-```
-
-If decoding succeeds, `opencv_img` contains the decoded OpenCV image.
-
-There are still temporary debugging `write()` calls showing file metadata, array shape, dtype, size, etc. These can be cleaned up later.
-
----
-
-# Page Contract
-
-Every operation page follows:
-
-```text
-page(main_content, image)
-```
-
-Example:
-
-```python
 def function1_page(main_content, image):
+    main_content.write("Inside function1 page")
     if image is not None:
         out = process_function1(image)
         main_content.image(out)
     else:
         main_content.write("No image received")
-```
 
-Important fix already established:
-
-```python
 def function2_page(main_content, image):
-```
+    main_content.write("Inside function2 page")
+    if image is not None:
+        out = process_function2(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
 
-not:
+def function3_page(main_content, image):
+    main_content.write("Inside function3 page")
+    if image is not None:
+        out = process_function3(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
 
-```python
-def function2_page(main_content, doc_cont, image):
-```
+def function4_page(main_content, image):
+    main_content.write("Inside function4 page")
+    if image is not None:
+        out = process_function4(image)
+        main_content.image(out)
+    else:
+        main_content.write("No image received")
 
----
-
-# Page Routing
-
-Pages are registered as actual function objects:
-
-```python
 function_dictionary = {
     "Function1": function1_page,
     "Function2": function2_page,
     "Function3": function3_page,
     "Function4": function4_page,
 }
-```
 
-Routing is currently protected against an invalid key:
-
-```python
-if st.session_state["Function"] is not None:
-    main_content.write(st.session_state["Function"])
-
-    try:
-        s = function_dictionary[st.session_state["Function"]]
-    except KeyError:
-        main_content.write("Could not find function")
-    else:
-        s(main_content, opencv_img)
-```
-
-The `try` contains only the dictionary lookup so a future `KeyError` inside an operation page is not incorrectly reported as a routing error.
-
----
-
-# Processing Contract
-
-Each operation page has a corresponding processor.
-
-Currently processors are placeholders such as:
-
-```python
-def process_function1(image):
-    return image
-```
-
-Contract:
-
-```text
-process(image) → result
-```
-
-Processing functions:
-
-```text
-receive image/data
-perform processing
-return result
-
-do NOT receive Streamlit containers
-do NOT render UI
-do NOT know about main_content
-```
-
-Page responsibility:
-
-```text
-collect parameters
-call processor
-receive result
-decide how result is displayed
-```
-
-Processor responsibility:
-
-```text
-perform the operation
-produce result
-return result
-```
-
----
-
-# Output Handling
-
-Basic output handling is already sufficient.
-
-Current example:
-
-```python
-out = process_function1(image)
-main_content.image(out)
-```
-
-Important distinction:
-
-```text
-processor
-    decides WHAT result is produced
-
-page
-    decides HOW result is presented
-```
-
-Not every future processor must return exactly one image.
-
-Possible future results could include:
-
-```text
-one image
-multiple images
-image + metadata
-numeric result
-textual result
-structured result
-```
-
-No universal output abstraction exists yet.
-
-That is intentional.
-
-A shared output helper should only be introduced if actual repeated presentation logic appears across operation pages.
-
-Principle:
-
-```text
-same output type ≠ same output behavior
-```
-
-For example, one operation showing one image and another showing two images side-by-side does not justify forcing them through one universal renderer.
-
----
-
-# Reusable UI Components
-
-No component framework has been created yet.
-
-Principle:
-
-```text
-reusable ≠ universal
-```
-
-Do not invent abstractions before duplication exists.
-
-Potential helpers may appear later when real operations reveal repeated UI patterns.
-
----
-
-# Documentation Loader
-
-Current loader:
-
-```python
-def load_documentation(file_path):
-    try:
-        with open(file_path) as f:
-            return f.read()
-    except FileNotFoundError:
-        return "File not found"
-```
-
-Contract:
-
-```text
-file path
-    ↓
-load_documentation()
-    ↓
-Python string
-```
-
-Rendering remains separate:
-
-```python
-doc_panel.markdown(text)
-```
-
-So:
-
-```text
-loader
-    file → text
-
-doc_panel
-    text → rendered Markdown
-```
-
-Documentation mapping:
-
-```python
 doc_file_dictionary = {
     "Function1": "function1.md",
     "Function2": "function2.md",
     "Function3": "function3.md",
     "Function4": "function4.md",
 }
-```
 
-`docs/test.md` remains the default documentation when no operation is selected.
+def create_main_content(main_content):
+    main_content.write("This is where we show content")
+    main_content.write("")
+
+    uploaded_file = main_content.file_uploader(
+        label="Upload an image",
+        type=["png", "jpg", "jpeg"],
+    )
+
+    opencv_img = None
+
+    if uploaded_file is not None:
+        main_content.write(f"Name :{uploaded_file.name}")
+        main_content.write(f"Type :{uploaded_file.type}")
+        main_content.write(f"Size :{uploaded_file.size}")
+
+        main_content.image(uploaded_file)
+
+        image_bytes = uploaded_file.getvalue()
+
+        main_content.write(type(image_bytes))
+        main_content.write(len(image_bytes))
+
+        image = np.frombuffer(image_bytes, dtype=np.uint8)
+
+        main_content.write(type(image).__name__)
+        main_content.write(image.dtype)
+        main_content.write(image.size)
+        main_content.write(image.shape)
+        main_content.write(image.ndim)
+
+        opencv_img = cv2.imdecode(image, cv2.IMREAD_COLOR)
+
+        if opencv_img is None:
+            main_content.write("Could not decode the uploaded image")
+        else:
+            main_content.write(type(opencv_img).__name__)
+            main_content.write(opencv_img.dtype)
+            main_content.write(opencv_img.size)
+            main_content.write(opencv_img.shape)
+            main_content.write(opencv_img.ndim)
+
+    if st.session_state["Function"] is not None:
+        main_content.write(st.session_state["Function"])
+
+        try:
+            s = function_dictionary[st.session_state["Function"]]
+        except KeyError:
+            main_content.write("Could not find function")
+        else:
+            s(main_content, opencv_img)
+
+
+def run():
+    header = st.container()
+    header.title("Image Processing Toolkit")
+
+    if "Function" not in st.session_state:
+        st.session_state["Function"] = None
+
+    main_content, doc_panel = st.columns([3, 1])
+
+    add_sidebar_menu()
+    create_main_content(main_content)
+
+    doc_panel.write("It is document sidebar")
+
+    if st.session_state["Function"] is not None:
+        text = load_documentation(
+            "docs/" + doc_file_dictionary[st.session_state["Function"]]
+        )
+        doc_panel.markdown(text)
+    else:
+        text = load_documentation("docs/test.md")
+        doc_panel.markdown(text)
+
+
+def on_click_function(string: str):
+    st.session_state["Function"] = string
+
+
+def add_sidebar_menu():
+    st.sidebar.header("Functionalities")
+
+    for key, values in sidebar_dictionary.items():
+        with st.sidebar.expander(key, True):
+            for value in values:
+                st.button(
+                    label=value,
+                    on_click=on_click_function,
+                    args=(value,),
+                )
+
+
+if __name__ == "__main__":
+    run()
+```
 
 ---
 
-# Error Handling
+# WHAT HAS ALREADY BEEN LEARNED / IMPLEMENTED
 
-Only basic, concrete error handling has been added.
+Basic application infrastructure is working.
 
-Current cases:
+Current flow:
 
-```text
-missing documentation file
-    → catch FileNotFoundError
+UploadedFile
+    ↓
+uploaded_file.getvalue()
+    ↓
+bytes
+    ↓
+np.frombuffer(..., dtype=np.uint8)
+    ↓
+encoded byte ndarray
+    ↓
+cv2.imdecode(..., cv2.IMREAD_COLOR)
+    ↓
+decoded OpenCV image ndarray
 
-image decoder produces no usable image
-    → check returned result
+Important understanding:
 
-selected operation missing from function_dictionary
-    → catch KeyError
-```
+`np.frombuffer()` does NOT decode the image.
 
-Important concepts learned:
+It only creates a NumPy view/array over the encoded byte data.
 
-```text
-expected state
-    ≠
-invalid returned result
-    ≠
-exception
-    ≠
-programming/configuration bug
-```
-
-And:
-
-```text
-returned value is unusable
-    → validate/check result
-
-operation raises an exception
-    → exception handling
-```
-
-No centralized error manager, custom exceptions, logging framework, or large error abstraction exists yet.
-
-Do not create one until the project demonstrates a real need.
-
----
-
-# Testing Convention
-
-pytest has now been installed successfully.
-
-Convention:
-
-```text
-tests directory:
-    tests/
-
-test files:
-    test_*.py
-
-test functions:
-    test_*
-
-primary initial target:
-    processing functions
-```
-
-Current test file:
-
-```text
-tests/test_processing.py
-```
-
-Current test:
+Actual decoding happens here:
 
 ```python
-import numpy as np
-
-from app import process_function1
-
-
-def test_process_function1_returns_image():
-    image = np.array([
-        [[10, 20, 30], [40, 50, 60]],
-        [[70, 80, 90], [100, 110, 120]]
-    ], dtype=np.uint8)
-
-    result = process_function1(image)
-
-    assert np.array_equal(result, image)
+cv2.imdecode(...)
 ```
 
-The test has been run successfully:
+Current decoded image is using:
 
-```text
-collected 1 item
-
-tests/test_processing.py .    [100%]
-
-1 passed
+```python
+cv2.IMREAD_COLOR
 ```
 
-Do not create duplicate tests for Function2–Function4 merely to increase test count.
-
-Tests should accompany actual behavior as real operations are implemented.
+which normally creates a BGR OpenCV image.
 
 ---
 
-# Current Architectural Layers
+# CURRENT BASIC ARCHITECTURE
 
-```text
+Conceptually:
+
 APPLICATION / INFRASTRUCTURE
 
 run()
@@ -564,87 +343,423 @@ process_function4()
 TESTING
 
 tests/test_processing.py
-```
+
+
+Current processor contract:
+
+process(image) -> result
+
+Processors:
+
+- receive image/data
+- perform processing
+- return result
+- do NOT render Streamlit UI
+- do NOT receive Streamlit containers
+
+Pages:
+
+- collect UI parameters
+- call processor
+- receive result
+- decide how the result is displayed
 
 ---
 
-# Current Design Philosophy
+# TESTING STATUS
 
-Do not build abstractions just because an architecture diagram suggests they might eventually exist.
+pytest is configured.
 
-Preferred process:
+Current test roughly verifies that the placeholder processor returns the input image.
 
-```text
+Tests should primarily target processing behavior as real OpenCV functionality gets added.
+
+Do NOT create duplicate tests for placeholder Function2/3/4 just to increase test count.
+
+---
+
+# DESIGN PRINCIPLE
+
+Very important:
+
+We are deliberately avoiding premature abstraction.
+
+Preferred development process:
+
 implement real feature
     ↓
-observe duplication/problem
+observe actual duplication/problem
     ↓
-understand the repeated responsibility
+understand repeated responsibility
     ↓
-extract abstraction if justified
-```
+extract abstraction only if justified
 
-Not:
+NOT:
 
-```text
-imagine every future possibility
+imagine all future requirements
     ↓
-create universal abstraction
+design universal architecture
     ↓
-force operations into it
-```
+force every future feature into it
+
+Do not introduce yet unless required:
+
+- large component frameworks
+- universal output managers
+- centralized error managers
+- custom exception hierarchy
+- pytest fixtures everywhere
+- mocking frameworks
+- custom CSS
+- excessive helper layers
+- large refactors
 
 ---
 
-# Important Things Not To Add Prematurely
+# CHANGE IN PLAN
 
-Do not immediately introduce:
+Initially the next real OpenCV operation was going to be grayscale.
 
-```text
-large component systems
-universal output managers
-centralized error managers
-custom exception hierarchies
-pytest fixtures
-mocking frameworks
-coverage configuration
-complex test classes
-custom CSS
-large refactors
-```
+Then I considered starting with `cv2.imread()` and studying all `IMREAD_*` modes.
 
-Only add these when real project requirements justify them.
+However, before even doing `imread`, I decided we should first create a proper HOME PAGE.
+
+This Home page is now the next task.
+
+Do NOT start `imread` yet.
 
 ---
 
-# NEXT STAGE
+# HOME PAGE VISION
 
-The surrounding basic infrastructure is now complete enough to start the first real OpenCV operation.
+The Home page should establish the proper application template.
 
-```text
-First full OpenCV operation  ⬜ NEXT
+Overall UI:
+
+LEFT SIDEBAR
+    Home button
+    then categories
+    then operations
+
+MAIN / CENTER
+    image uploader
+    image preview
+    image/file details
+
+RIGHT PANEL
+    documentation / information about the toolkit
+    explanation of what is being displayed
+
+Conceptually:
+
+┌──────────────────┬─────────────────────────────────────┬─────────────────────┐
+│ LEFT SIDEBAR     │ MAIN WORKSPACE                      │ INFO / DOCUMENTATION│
+│                  │                                     │                     │
+│ Home             │ Upload Image                        │ Toolkit intro       │
+│ ───────────      │                                     │                     │
+│ Image I/O        │ Image Preview                       │ Image concepts      │
+│   imread         │                                     │                     │
+│   imwrite        │ File details                        │ Current-page help   │
+│                  │ Decoded image details               │                     │
+│ Transformations  │                                     │                     │
+│   ...            │                                     │                     │
+└──────────────────┴─────────────────────────────────────┴─────────────────────┘
+
+The Home page is not merely a landing page.
+
+It should act as the first useful educational page of the toolkit.
+
+---
+
+# HOME PAGE IMAGE INFORMATION
+
+The current debug information should eventually be presented more cleanly.
+
+There are three useful conceptual stages.
+
+## 1. Uploaded file information
+
+For example:
+
+- name
+- MIME type
+- encoded file size
+
+## 2. Encoded data information
+
+After:
+
+```python
+image_bytes = uploaded_file.getvalue()
+
+image = np.frombuffer(
+    image_bytes,
+    dtype=np.uint8
+)
 ```
 
-The intended next approach is:
+possible information includes:
 
-```text
-choose Function1
-    ↓
-understand one real OpenCV operation
-    ↓
-implement its processor
-    ↓
-run through existing page architecture
-    ↓
-observe actual UI/output issues
-    ↓
-write meaningful automated test
-    ↓
-update documentation
+- Python type
+- NumPy dtype
+- encoded array shape
+- size / number of elements
+- ndim
+
+This represents encoded file bytes, NOT image pixels yet.
+
+## 3. Decoded OpenCV image information
+
+After:
+
+```python
+opencv_img = cv2.imdecode(...)
 ```
 
-A likely first operation discussed was grayscale conversion, but implementation has NOT started yet.
+show useful properties such as:
 
-Before writing code, explain what the chosen operation actually does to image data and then implement it incrementally.
+- Python type
+- dtype
+- shape
+- ndim
+- size
+- width
+- height
+- channel count
 
-Do not return to long sequences of classification questions. Work on the project directly and correct mistakes as they arise.
+Conceptually:
+
+.jpg / .png
+    ↓
+encoded file data
+    ↓
+bytes
+    ↓
+NumPy encoded-byte array
+    ↓
+OpenCV decoder
+    ↓
+pixel matrix
+
+This distinction is important and should eventually be explained on the Home page/documentation.
+
+---
+
+# HOME DOCUMENTATION
+
+Likely create:
+
+docs/home.md
+
+The right panel for Home should render this documentation.
+
+It can explain:
+
+- what the toolkit is
+- what an uploaded image actually is
+- encoded file representation
+- decoding
+- NumPy image representation
+- what the information shown in the center panel means
+
+Documentation should be educational but not bloated.
+
+---
+
+# NAVIGATION ISSUE DISCOVERED
+
+Current state is:
+
+```python
+st.session_state["Function"]
+```
+
+But Home is not a function.
+
+So Home gives us a real reason to reconsider this name.
+
+Possibly move toward:
+
+```python
+st.session_state["Page"]
+```
+
+or:
+
+```python
+st.session_state["selected_page"]
+```
+
+Then:
+
+Home
+IMRead
+IMWrite
+Resize
+Grayscale
+Threshold
+...
+
+can all simply be considered pages.
+
+Do NOT blindly rename everything.
+
+First explain the cleanest minimal change and why.
+
+---
+
+# POSSIBLE STRUCTURE DISCUSSED
+
+A possible future structure was discussed:
+
+Image-Processing-Toolkit/
+│
+├── app.py
+│
+├── assets/
+│
+├── docs/
+│   ├── home.md
+│   ├── imread.md
+│   └── ...
+│
+├── image_processing/
+│   ├── __init__.py
+│   └── ...
+│
+├── views/
+│   ├── __init__.py
+│   ├── home.py
+│   └── ...
+│
+├── ui/
+│   └── __init__.py
+│
+└── tests/
+
+Meaning:
+
+views/
+    page-level Streamlit UI
+
+image_processing/
+    actual OpenCV / NumPy logic
+
+docs/
+    educational documentation
+
+ui/
+    reusable Streamlit components only when real repetition justifies them
+
+tests/
+    processing/application tests
+
+But this is NOT yet finalized.
+
+The next discussion should determine the minimum restructuring required for Home.
+
+---
+
+# IMPORTANT FUTURE REQUIREMENT
+
+When the user uploads an image on Home and later navigates to an OpenCV operation, we probably do NOT want the image to disappear and require upload again.
+
+Eventually we may need:
+
+- session state
+- shared current image
+- shared uploaded bytes
+- shared decoded representation
+
+However, do NOT build a generalized application state system prematurely.
+
+First implement Home correctly.
+
+When the first real operation page is added, we can observe what state genuinely needs to persist.
+
+---
+
+# FUTURE ROADMAP
+
+Current intended order:
+
+PHASE 0
+Application shell / Home page
+
+- proper Home navigation
+- uploader
+- preview
+- image information
+- right documentation panel
+- clean file responsibilities
+
+PHASE 1
+Image I/O
+
+- understand cv2.imread()
+- understand IMREAD_* flags
+- document them
+- implement selectable read modes
+- test behavior
+
+Then likely:
+
+- imwrite
+- color conversion
+- resize
+- thresholding
+- filters
+- etc.
+
+The actual roadmap can evolve naturally.
+
+---
+
+# DEPLOYMENT PLAN
+
+Eventually the entire application should be deployed publicly.
+
+We discussed that an early smoke deployment may be useful after:
+
+- Home works
+- first real OpenCV operation works
+
+This can reveal issues with:
+
+- relative file paths
+- docs loading
+- package versions
+- requirements.txt
+- Linux deployment environment
+- assets
+- Streamlit configuration
+
+But deployment is NOT the immediate task.
+
+---
+
+# CURRENT NEXT TASK
+
+Start from the Home page.
+
+Before writing code:
+
+1. Review the existing code and current structure.
+2. Identify exactly what responsibilities belong to:
+   - app.py
+   - Home page
+   - documentation
+   - image loading/inspection
+3. Decide whether a small refactor is justified now.
+4. Avoid a full architecture rewrite.
+5. Explain the intended Home-page flow.
+6. Then implement incrementally with me.
+
+Do NOT start `imread` yet.
+
+Do NOT dump the whole finished application.
+
+Let's first decide what the Home page needs and make the minimum architecture changes required to support it cleanly.
+```
+
+This should give the new chat enough context to continue directly from **Home-page design**, without re-discussing all the earlier placeholder architecture.
