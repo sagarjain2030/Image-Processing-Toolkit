@@ -3,81 +3,22 @@ import streamlit as st
 from streamlit.logger import get_logger
 import cv2
 
+from utils.constants import sidebar_dictionary,function_dictionary, doc_file_dictionary
+
 LOGGER = get_logger(__name__)
 
-st.set_page_config (
-    page_title="Image Processing Toolkit",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+def define_configs():
+    st.set_page_config (
+        page_title="Image Processing Toolkit",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+    if "Function" not in st.session_state:
+        st.session_state["Function"] = None
 
-sidebar_dictionary = { "category1": ["Function1", "Function2"],
-"category2": ["Function3", "Function4"]}
-
-def process_function1(image):
-    return image
-
-def process_function2(image):
-    return image
-
-def process_function3(image):
-    return image
-
-def process_function4(image):
-    return image
-
-def load_documentation(file_path):
-    try:
-        with open(file_path) as f:
-            return f.read()
-    except FileNotFoundError:
-        return "### File not found"
-
-def function1_page(main_content, image):
-    main_content.write("Inside function1 page")
-    if image is not None:
-        out = process_function1(image)
-        main_content.image(out)
-    else:
-        main_content.write("No image received")
-
-def function2_page(main_content, image):
-    main_content.write("Inside function2 page")
-    if image is not None:
-        out = process_function2(image)
-        main_content.image(out)
-    else:
-        main_content.write("No image received")
-
-def function3_page(main_content, image):
-    main_content.write("Inside function3 page")
-    if image is not None:
-        out = process_function3(image)
-        main_content.image(out)
-    else:
-        main_content.write("No image received")
-
-def function4_page(main_content, image):
-    main_content.write("Inside function4 page")
-    if image is not None:
-        out = process_function4(image)
-        main_content.image(out)
-    else:
-        main_content.write("No image received")
-
-function_dictionary = {
-    "Function1" : function1_page,
-    "Function2" : function2_page,
-    "Function3": function3_page,
-    "Function4" : function4_page,
-}
-
-doc_file_dictionary = {
-    "Function1" : "function1.md",
-    "Function2" : "function2.md",
-    "Function3": "function3.md",
-    "Function4" : "function4.md",
-}
+def set_homepage():
+    header = st.container()
+    header.title("Image Processing Toolkit")
 
 def create_main_content(main_content):
     main_content.write("This is where we show content")
@@ -118,23 +59,22 @@ def create_main_content(main_content):
             s(main_content, opencv_img)
 
 
-def run():
-    header = st.container()
-    header.title("Image Processing Toolkit")
-    if "Function" not in st.session_state:
-        st.session_state["Function"] = None
-    main_content, doc_panel = st.columns([3, 1])
-    add_sidebar_menu()
-    create_main_content(main_content)
+def load_documentation(file_path):
+    try:
+        with open(file_path) as f:
+            return f.read()
+    except FileNotFoundError:
+        return "### File not found"
+
+
+def create_doc_content(doc_panel):
     doc_panel.write("It is document sidebar")
     if st.session_state["Function"] is not None:
         text = load_documentation("docs/" + doc_file_dictionary[st.session_state["Function"]])
         doc_panel.markdown(text)
-    else :
+    else:
         text = load_documentation("docs/test.md")
         doc_panel.markdown(text)
-
-
 def on_click_function(string:str,):
     st.session_state["Function"] = string
 
@@ -144,6 +84,14 @@ def add_sidebar_menu():
         with st.sidebar.expander(key, True):
             for value in values:
                 st.button(label=value, on_click=on_click_function,args=(value,))
+
+def run():
+    define_configs()
+    set_homepage()
+    main_content, doc_panel = st.columns([3, 1])
+    add_sidebar_menu()
+    create_main_content(main_content)
+    create_doc_content(doc_panel)
 
 if __name__== "__main__":
     run()
