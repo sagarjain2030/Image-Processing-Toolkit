@@ -162,7 +162,7 @@ image_processing/
 └── feature_detection/
 ```
 
-The `pages/` and `docs/` directories follow the same organization.
+The `views` and `docs/` directories follow the same organization.
 
 For example, a geometric resize operation is represented by:
 

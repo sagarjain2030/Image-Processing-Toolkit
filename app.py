@@ -1,9 +1,8 @@
-import numpy as np
 import streamlit as st
 from streamlit.logger import get_logger
-import cv2
 
 from utils.constants import sidebar_dictionary,function_dictionary, doc_file_dictionary
+from utils.ui_utils import get_image_formatted
 
 LOGGER = get_logger(__name__)
 
@@ -14,7 +13,7 @@ def define_configs():
         initial_sidebar_state="expanded",
     )
     if "Function" not in st.session_state:
-        st.session_state["Function"] = None
+        st.session_state["Function"] = "Home"
 
 def set_homepage():
     header = st.container()
@@ -27,20 +26,7 @@ def create_main_content(main_content):
                                type = ["png", "jpg","jpeg"],)
     opencv_img = None
     if uploaded_file is not None:
-        main_content.write(f"Name :{uploaded_file.name}" )
-        main_content.write(f"Type :{uploaded_file.type}" )
-        main_content.write(f"Size :{uploaded_file.size}")
-        main_content.image(uploaded_file)
-        image_bytes = uploaded_file.getvalue()
-        main_content.write(type(image_bytes))
-        main_content.write(len(image_bytes))
-        image = np.frombuffer(image_bytes,dtype=np.uint8)
-        main_content.write(type(image).__name__)
-        main_content.write(image.dtype)
-        main_content.write(image.size)
-        main_content.write(image.shape)
-        main_content.write(image.ndim)
-        opencv_img = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        opencv_img = get_image_formatted(uploaded_file)
         if opencv_img is None:
             main_content.write("Could not decode the uploaded image")
         else:
@@ -58,7 +44,6 @@ def create_main_content(main_content):
         else:
             s(main_content, opencv_img)
 
-
 def load_documentation(file_path):
     try:
         with open(file_path) as f:
@@ -66,20 +51,21 @@ def load_documentation(file_path):
     except FileNotFoundError:
         return "### File not found"
 
-
 def create_doc_content(doc_panel):
     doc_panel.write("It is document sidebar")
     if st.session_state["Function"] is not None:
         text = load_documentation("docs/" + doc_file_dictionary[st.session_state["Function"]])
         doc_panel.markdown(text)
     else:
-        text = load_documentation("docs/test.md")
+        text = load_documentation("docs/home.md")
         doc_panel.markdown(text)
+
 def on_click_function(string:str,):
     st.session_state["Function"] = string
 
 def add_sidebar_menu():
     st.sidebar.header("Functionalities")
+    st.sidebar.button(label="Home", on_click=on_click_function,args=("Home",))
     for key,values in sidebar_dictionary.items():
         with st.sidebar.expander(key, True):
             for value in values:

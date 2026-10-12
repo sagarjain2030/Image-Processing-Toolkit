@@ -1,3 +1,5 @@
+from image_processing.process2_function import process_function2
+
 def function2_page(main_content, image):
     main_content.write("Inside function2 page")
     if image is not None:

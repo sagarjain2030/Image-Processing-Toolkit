@@ -1,5 +1,6 @@
 import numpy as np
-from app import process_function1
+from image_processing.process1_function import process_function1
+
 
 def test_process_function1_returns_image():
     image = np.array([

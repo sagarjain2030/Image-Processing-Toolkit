@@ -1,7 +1,8 @@
-from pages.function1_page import function1_page
-from pages.function2_page import function2_page
-from pages.function3_page import function3_page
-from pages.function4_page import function4_page
+from views.function1_page import function1_page
+from views.function2_page import function2_page
+from views.function3_page import function3_page
+from views.function4_page import function4_page
+from views.home_page import home_page
 
 sidebar_dictionary = {
     "category1": ["Function1", "Function2"],
@@ -9,6 +10,7 @@ sidebar_dictionary = {
 }
 
 function_dictionary = {
+    "Home": home_page,
     "Function1" : function1_page,
     "Function2" : function2_page,
     "Function3": function3_page,
@@ -16,6 +18,7 @@ function_dictionary = {
 }
 
 doc_file_dictionary = {
+    "Home" : "home.md",
     "Function1" : "function1.md",
     "Function2" : "function2.md",
     "Function3": "function3.md",
