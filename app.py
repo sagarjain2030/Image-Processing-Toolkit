@@ -22,19 +22,6 @@ def set_homepage():
 def create_main_content(main_content):
     main_content.write("This is where we show content")
     main_content.write("")
-    uploaded_file = main_content.file_uploader(label="Upload an image",
-                               type = ["png", "jpg","jpeg"],)
-    opencv_img = None
-    if uploaded_file is not None:
-        opencv_img = get_image_formatted(uploaded_file)
-        if opencv_img is None:
-            main_content.write("Could not decode the uploaded image")
-        else:
-            main_content.write(type(opencv_img).__name__)
-            main_content.write(opencv_img.dtype)
-            main_content.write(opencv_img.size)
-            main_content.write(opencv_img.shape)
-            main_content.write(opencv_img.ndim)
     if st.session_state["Function"] is not None:
         main_content.write(st.session_state["Function"])
         try :
@@ -42,7 +29,7 @@ def create_main_content(main_content):
         except KeyError :
             main_content.write("Could not find function")
         else:
-            s(main_content, opencv_img)
+            s(main_content)
 
 def load_documentation(file_path):
     try:
@@ -52,7 +39,6 @@ def load_documentation(file_path):
         return "### File not found"
 
 def create_doc_content(doc_panel):
-    doc_panel.write("It is document sidebar")
     if st.session_state["Function"] is not None:
         text = load_documentation("docs/" + doc_file_dictionary[st.session_state["Function"]])
         doc_panel.markdown(text)
