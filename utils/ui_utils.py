@@ -14,3 +14,12 @@ def get_image_formatted(uploaded_file):
         return opencv_img
     else:
         return None
+
+def get_image_download_bytes(img, extension):
+    extension = extension.lower().lstrip(".")
+    if extension not in ("png", "jpg", "jpeg"):
+        raise ValueError("Unsupported output image format")
+    success, encoded_img = cv2.imencode("." + extension, img)
+    if not success:
+        raise ValueError("Failed to encode image for download")
+    return encoded_img.tobytes()
