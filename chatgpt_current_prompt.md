@@ -1,746 +1,368 @@
 # Image Processing Toolkit — Project Continuation Handoff
-**Date: October 14, 2026**
 
-## 1. Project background
+**Date: October 15, 2026**
 
-I am developing a long-term **Image Processing Toolkit** using:
+I am continuing the development of my long-term **Image Processing Toolkit** project using Python, OpenCV (`cv2`), NumPy, Streamlit, pytest, and Git.
 
-- Python
-- OpenCV (`cv2`)
-- NumPy
-- Streamlit
-- pytest
-- Git
+This is a continuation of a previous ChatGPT conversation. Please use this handoff to understand everything we've implemented, verified, and decided so far.
 
-I am an experienced software engineer, but this is also an educational project. I want to thoroughly understand image processing concepts, Python libraries, architectural decisions, and implementation details.
+I will attach my latest project ZIP when available. **Inspect the actual files before recommending exact modifications.** Some code changes described here were made after the previous ZIP was uploaded, so do not assume the older ZIP contains them.
 
-**Important: Act as my technical mentor and code reviewer, not as someone who simply generates the entire application.**
+## 1. Your role
 
-I am attaching my latest project ZIP. Inspect the actual files before recommending exact code modifications.
+Act as my **technical mentor and code reviewer**, not as someone who generates the entire application.
 
-The ZIP may contain newer implementations than the code examples provided below. Treat the ZIP as the source of truth for the current code, and use this handoff to understand our decisions and intended behavior.
+I am an experienced software engineer, but this is also an educational project. I want to understand image processing concepts, OpenCV, Python library behavior, implementation details, and architectural decisions thoroughly.
 
-Do not ask me to re-explain information already contained in this handoff.
+Our working principles are:
 
----
-
-## 2. How I want to work
-
-Please follow these principles:
-
-1. Explain current behavior and underlying concepts before suggesting modifications.
-2. Explain why something is incorrect and why your proposed correction is justified.
-3. Allow me to implement changes myself whenever possible.
+1. Explain existing behavior and relevant concepts before suggesting changes.
+2. Explain why an issue exists and why a proposed correction is appropriate.
+3. Let me implement functionality myself whenever possible.
 4. Review my implementation before proceeding.
-5. Work on one manageable issue at a time.
-6. Avoid unnecessary abstractions, classes, frameworks, and complicated state management.
-7. Keep actual image-processing logic independent of Streamlit.
-8. Preserve the existing architecture unless there is a concrete reason to change it.
-9. Clearly distinguish bugs, required changes, optional improvements, and future enhancements.
+5. Work on **one manageable issue at a time**.
+6. Preserve the existing architecture unless there is a concrete problem.
+7. Avoid unnecessary abstractions, classes, frameworks, and complicated state management.
+8. Keep image-processing logic independent of Streamlit.
+9. Clearly distinguish defects, required changes, optional improvements, and future enhancements.
 10. Do not rewrite the entire application.
-11. Do not repeatedly propose architectural changes we've already evaluated and settled.
-12. Review the actual code rather than assuming previous changes were implemented.
+11. Do not repeatedly suggest changes we have already considered and rejected.
+12. Avoid revisiting completed and verified functionality without new evidence.
 
-**Small, incremental corrections are strongly preferred over large code replacements.**
+### Documentation exception
 
----
+I want to write the educational documentation for new image-processing operations myself, with your guidance and reviews.
 
-## 3. Current application architecture
+However, for administrative documentation such as `README.md` and the Home page documentation, I am comfortable receiving complete, paste-ready drafts.
 
-The application has three main UI areas:
+## 2. Current application architecture
 
-- **Left sidebar:** Navigation between Home and processing functions.
-- **Middle workspace:** Interactive UI for the selected page.
-- **Right panel:** Markdown documentation corresponding to the selected page.
+Our Streamlit application has three interface areas:
+
+- **Left sidebar:** Navigation between Home and Function1–Function4.
+- **Middle workspace:** The interactive interface for the selected page.
+- **Right documentation panel:** The Markdown documentation associated with the selected page.
 
 Current project structure:
 
 ```text
-app.py
-views/
-    home_page.py
-    function1_page.py
-    function2_page.py
-    function3_page.py
-    function4_page.py
-image_processing/
-    process1_function.py
-    process2_function.py
-    process3_function.py
-    process4_function.py
-utils/
-    constants.py
-    ui_utils.py
-docs/
-    home.md
-    function1.md
-    function2.md
-    function3.md
-    function4.md
-tests/
-    test_processing.py
-assets/
-ui/
-requirements.txt
-README.md
+Image-Processing-Toolkit/
+├── app.py
+├── README.md
+├── requirements.txt
+├── LICENSE
+├── views/
+│   ├── home_page.py
+│   ├── function1_page.py
+│   ├── function2_page.py
+│   ├── function3_page.py
+│   └── function4_page.py
+├── image_processing/
+│   ├── process1_function.py
+│   ├── process2_function.py
+│   ├── process3_function.py
+│   └── process4_function.py
+├── utils/
+│   ├── constants.py
+│   └── ui_utils.py
+├── docs/
+│   ├── home.md
+│   ├── function1.md
+│   ├── function2.md
+│   ├── function3.md
+│   └── function4.md
+├── tests/
+│   └── test_processing.py
+├── assets/
+└── ui/
 ```
+
+We deliberately use `views/` rather than `pages/` to avoid conflicts with Streamlit's built-in multipage convention.
 
 Responsibilities:
 
-| Component | Responsibility |
-|---|---|
-| `app.py` | Application configuration, navigation, layout, view selection, documentation coordination |
-| `views/` | Streamlit UI for individual processing functions |
-| `image_processing/` | Image processing using NumPy/OpenCV, independent of Streamlit |
-| `utils/ui_utils.py` | Shared upload, image decoding, and download utilities |
-| `utils/constants.py` | Shared navigation and documentation mappings |
-| `docs/` | Educational Markdown documentation |
-| `tests/` | Automated tests |
+- `app.py` manages configuration, navigation, layout, view selection, and documentation.
+- `views/` contains page-specific Streamlit interfaces.
+- `image_processing/` contains processing functions independent of Streamlit.
+- `utils/ui_utils.py` provides shared upload, decoding, and output encoding functionality.
+- `utils/constants.py` contains navigation, view, and documentation mappings.
+- `docs/` contains Markdown documentation.
+- `tests/` contains automated tests.
 
-We previously renamed `pages/` to `views/` to avoid conflicts with Streamlit's built-in multipage convention.
+**Do not propose reorganizing these modules without a concrete technical reason.**
 
-Do not redesign these responsibilities unnecessarily.
+## 3. Completed: Independent image uploaders
 
----
+Every view has an independent image uploader using a unique, fixed widget key.
 
-## 4. Important architectural decision: independent uploads
+The keys are:
 
-Every page must have its own independent image uploader.
+- `homepage_uploader`
+- `function1_uploader`
+- `function2_uploader`
+- `function3_uploader`
+- `function4_uploader`
 
-When a user navigates away from a page and later returns, the previously uploaded file should be cleared.
+When navigating away from a page and returning, its previous uploaded image is cleared.
 
-Example:
+We verified this behavior manually in the Streamlit browser, including Function4 and navigation between multiple pages.
 
-1. Open Home and upload Image A.
-2. Navigate to Function1 — its uploader is empty.
-3. Upload Image B in Function1.
-4. Navigate to Function2 — its uploader is empty.
-5. Return to Function1 — Image B is gone.
-6. Return to Home — Image A is gone.
+We intentionally avoided upload-generation counters and additional session-state mechanisms.
 
-Our implementation uses a shared `load_image()` function and unique fixed widget keys for each view.
+**This functionality is complete. Do not revisit it unless a real defect appears.**
 
-Examples:
+## 4. Established processing workflow
 
-```python
-load_image(main_content, key="homepage_uploader")
-load_image(main_content, key="function1_uploader")
-load_image(main_content, key="function2_uploader")
-load_image(main_content, key="function3_uploader")
-load_image(main_content, key="function4_uploader")
-```
-
-`app.py` renders only the selected view.
-
-We deliberately avoided upload-generation counters or additional session-state management.
-
-### Verification already completed
-
-In the previous chat:
-
-- All five uploaders were confirmed to use unique keys.
-- The previous Function4 missing-key bug was corrected.
-- I manually tested the independent-upload workflow in the actual Streamlit browser.
-- All seven navigation checks passed, including Function4.
-
-**Consider independent uploading verified. Do not revisit it unless new evidence demonstrates a problem.**
-
----
-
-## 5. Our main design goal: establish a reusable processing-page pattern
-
-This is an especially important recent decision.
-
-We are using Home to establish a **consistent processing workflow/template** that can be followed by the other views.
-
-The intended workflow is:
+We want a consistent workflow across pages:
 
 ```text
 Upload File
-    |
-    v
-Decode Uploaded Image
-    |
-    v
-Display Input / Preview
-    |
-    v
-Page-Specific Inputs and Processing
-    |
-    v
+    ↓
+Read Uploaded Bytes
+    ↓
+Decode Image
+    ↓
+Display Preview
+    ↓
+Page-Specific Processing
+    ↓
 Display Output
-    |
-    v
+    ↓
 Download Output
 ```
 
-For example:
+Home establishes this processing pattern.
 
-- A resize page may request width and height.
-- A grayscale page may request conversion options.
-- A thresholding page may request threshold values.
-- A filtering page may request kernel parameters.
+Individual processing pages will later introduce their own processing controls and operations.
 
-Only the page-specific controls and processing logic should need significant modification.
+We do not want a generic page class or new templating framework.
 
-Common upload, decoding, display, and download patterns should remain consistent.
+## 5. Completed: Image output downloading
 
-**However, consistency does not mean we need a generic page class, a template framework, or unnecessary abstractions.**
+We selected OpenCV's `cv2.imencode()` to generate the downloadable output image from a NumPy array.
 
-We want a simple architecture that remains easy to understand and maintain.
+The result is provided through Streamlit's native `download_button()`.
 
----
+Our current rules:
 
-## 6. Our decision about image downloading
+- Supported output formats: PNG, JPG, and JPEG.
+- By default, output format matches the uploaded image's extension.
+- PNG uses MIME type `image/png`.
+- JPG and JPEG use MIME type `image/jpeg`.
+- Downloads are re-encoded and are not necessarily byte-for-byte identical to the uploaded image.
+- Home performs no image transformation; its decoded input is also its output.
 
-We discussed two different download behaviors.
+We intentionally stopped using PIL, `BytesIO`, Base64, and custom HTML anchors for this workflow.
 
-### A. Downloading the original uploaded image
+The helper `get_image_download_bytes()` validates the extension, calls `cv2.imencode()`, checks success, and returns `encoded_img.tobytes()`.
 
-This uses:
+It returns encoded bytes or raises an exception; it does not normally return `None`.
 
-```python
-uploaded_image.getvalue()
-```
+### Future video support
 
-It preserves the original encoded bytes.
+We may eventually support image uploads, video uploads, or both, depending on the processing page.
 
-### B. Downloading the output image
+However, video decoding and encoding are deferred.
 
-This uses:
+Exporting individual video frames as images is different from encoding complete video files.
 
-```python
-cv2.imencode()
-```
+Do not implement video support at this stage.
 
-It encodes an OpenCV/NumPy output image into a downloadable image format.
+## 6. Completed: Home UI
 
-**We selected option B for our reusable processing-page pattern.**
-
-Even though Home currently performs no image processing, we want its download workflow to be representative of future processing functions.
-
-In Home:
-
-```python
-output_image = image
-```
-
-Conceptually, the decoded input image is also the output image.
-
-Future pages will produce `output_image` using their respective processing functions.
-
-We no longer want to use:
-
-- PIL conversion just to download OpenCV arrays.
-- `BytesIO` for this download workflow.
-- Base64 image encoding.
-- Generated HTML anchor links.
-- `unsafe_allow_html=True` for image downloading.
-
-Instead, use:
-
-```python
-cv2.imencode()
-```
-
-followed by:
-
-```python
-main_content.download_button()
-```
-
-One important clarification: the downloaded image is re-encoded, so it is not necessarily byte-for-byte identical to the originally uploaded file.
-
----
-
-## 7. Output extension decisions
-
-Our latest discussion established the following requirement:
-
-**If the user does not explicitly select an output extension, use the uploaded image's extension.**
-
-Examples:
-
-| Source | User-selected format | Output |
-|---|---|---|
-| `photo.jpg` | None | JPG |
-| `photo.png` | None | PNG |
-| `photo.jpg` | PNG | PNG |
-| `photo.png` | JPEG | JPEG |
-
-Currently, the UI does not provide an output-format selection control.
-
-Therefore, we directly use the source extension.
-
-We extract it using:
-
-```python
-source_extension = uploaded_image.name.rsplit(".", 1)[-1].lower()
-```
-
-We previously attempted to use `pandocfilters.get_extension()`, but this was incorrect for extracting uploaded filename extensions.
-
-The Pandoc import should no longer be necessary.
-
-### Future format selection
-
-If we later add a Streamlit select box for output format, the logic should allow:
-
-```python
-output_extension = user_extension or source_extension
-```
-
-This is a future capability, not something that must be implemented immediately.
-
-Keep the implementation simple for now.
-
-### Supported output formats
-
-Currently:
-
-```python
-("png", "jpg", "jpeg")
-```
-
-The downloaded image's MIME type must match the encoded format.
-
-For JPG and JPEG, use `image/jpeg`.
-
-For PNG, use `image/png`.
-
----
-
-## 8. Future video support — Important decision
-
-We also discussed supporting video processing in the future.
-
-We want the upload component to eventually support:
-
-- Images only.
-- Videos only.
-- Both images and videos.
-
-This selection should depend on the processing function.
-
-A possible future-compatible uploader signature is:
-
-```python
-def load_image(main_content, key, allowed_types=("png", "jpg", "jpeg")):
-```
-
-Pages could then provide their supported extensions.
-
-However, verify whether this change has actually been implemented in the uploaded ZIP before recommending anything.
-
-### Video decoding
-
-Our current `get_image_formatted()` handles encoded image files, not videos.
-
-We explicitly decided to **defer video decoding and encoding until the video-processing phase**.
-
-Do not introduce a video-processing implementation now.
-
-### Video frames and image downloads
-
-An OpenCV video frame is usually a NumPy array, just like a decoded image.
-
-Therefore, our image-download helper using `cv2.imencode()` should also be suitable for exporting individual video frames as PNG/JPEG images.
-
-An individual video frame has no source-image extension of its own. If we eventually export a frame without a user-selected image format, PNG is a reasonable default.
-
-**Exporting an individual video frame is not the same as encoding an entire video.**
-
-Full video encoding/download will require a separate implementation later.
-
-Please preserve this distinction without prematurely implementing it.
-
----
-
-## 9. Most recently shared implementation
-
-These were the latest code snippets reviewed in the previous chat.
-
-They represent the code I last posted, not necessarily the latest code in the new ZIP.
-
-### `views/home_page.py`
-
-```python
-from utils.ui_utils import (
-    load_image,
-    get_image_formatted,
-    get_image_download_bytes
-)
-
-def home_page(main_content):
-    main_content.write("Inside Home Page")
-
-    uploaded_image = load_image(
-        main_content=main_content,
-        key="homepage_uploader"
-    )
-
-    image = get_image_formatted(uploaded_image)
-
-    if image is not None:
-        source_extension = uploaded_image.name.rsplit(".", 1)[-1].lower()
-
-        main_content.image(image, channels="BGR")
-
-        data = get_image_download_bytes(image, source_extension)
-
-        file_name = f"output.{source_extension}",
-        mime = "image/png" if source_extension == "png" else "image/jpeg"
-
-        if data is not None:
-            main_content.download_button(
-                label="Download Output Image",
-                data=data,
-                filename=file_name,
-                mime=mime
-            )
-        else:
-            main_content.write("No image received")
-```
-
-### Two specific bugs identified in the last review
-
-**Bug 1 — Trailing comma**
-
-```python
-file_name = f"output.{source_extension}",
-```
-
-The comma creates a tuple rather than a string.
-
-It should be:
-
-```python
-file_name = f"output.{source_extension}"
-```
-
-**Bug 2 — Incorrect Streamlit argument**
-
-We used:
-
-```python
-filename=file_name
-```
-
-But the correct argument is:
-
-```python
-file_name=file_name
-```
-
-These were identified in the previous review, but I have not yet confirmed their correction in the browser.
-
-When inspecting my latest ZIP, check whether I have already fixed them.
-
-Do not assume the bugs are still present if the latest code has changed.
-
----
-
-## 10. Current image utility implementations
-
-The current approach in `utils/ui_utils.py` contains three main functions.
-
-### A. Upload
-
-The last confirmed form was approximately:
-
-```python
-def load_image(main_content, key):
-    uploaded_file = main_content.file_uploader(
-        label="Upload an image",
-        type=["png", "jpg", "jpeg"],
-        key=key
-    )
-    return uploaded_file
-```
-
-We discussed making the permitted file extensions configurable for future video support, but verify whether that modification is present in the latest ZIP.
-
-### B. Decode
-
-```python
-def get_image_formatted(uploaded_file):
-    if uploaded_file is not None:
-        image_bytes = uploaded_file.getvalue()
-        image = np.frombuffer(image_bytes, dtype=np.uint8)
-        opencv_img = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        return opencv_img
-    else:
-        return None
-```
-
-The function:
-
-1. Gets the encoded bytes of the uploaded image.
-2. Creates a NumPy array from those bytes.
-3. Decodes the image using OpenCV.
-4. Returns a BGR NumPy array.
-
-When showing the decoded image in Streamlit, we currently use:
-
-```python
-main_content.image(image, channels="BGR")
-```
-
-This corrects the previous BGR/RGB display problem.
-
-### C. Encode output for download
-
-```python
-def get_image_download_bytes(img, extension):
-    extension = extension.lower().lstrip(".")
-
-    if extension not in ("png", "jpg", "jpeg"):
-        raise ValueError("Unsupported output image format")
-
-    success, encoded_img = cv2.imencode("." + extension, img)
-
-    if not success:
-        raise ValueError("Failed to encode image for download")
-
-    if encoded_img is not None:
-        return encoded_img.tobytes()
-    else:
-        return None
-```
-
-This implementation was reviewed positively.
-
-### Optional cleanup discussed
-
-Because unsuccessful encoding already raises an exception, the final `if encoded_img is not None` condition is unnecessary.
-
-The last part can be simplified to:
-
-```python
-return encoded_img.tobytes()
-```
-
-This is a small cleanup, not a reason to redesign the helper.
-
-The Home view's `if data is not None` branch would also be redundant under this helper contract.
-
-Please distinguish these cleanups from actual defects.
-
----
-
-## 11. Where we stopped
-
-We have reached the point of providing a reusable **Download Output Image** button.
-
-The implementation uses:
-
-- `load_image()` for uploading.
-- `get_image_formatted()` for decoding.
-- `main_content.image(..., channels="BGR")` for displaying.
-- `get_image_download_bytes()` for encoding output.
-- Streamlit's native `download_button()` for downloading.
-
-The previous review identified two bugs in the download button integration, as documented above.
-
-We had not yet declared the entire Home page complete.
-
-### What we want to verify next
-
-1. Confirm the two download-button bugs are fixed.
-2. Test uploading a JPG and downloading its output.
-3. Test uploading a PNG and downloading its output.
-4. Verify both downloaded files open correctly and preserve their intended output formats.
-5. Check that the application works when no image is uploaded.
-
-Please start with the smallest remaining issue based on the actual ZIP, rather than implementing every improvement simultaneously.
-
----
-
-## 12. Remaining Home page work
-
-Our objective is to finish Home before moving to other processing pages.
-
-We want Home to be simple, informative, and user-friendly.
-
-### Desired Home elements
+The Home page now contains:
 
 - A welcome heading.
-- A short introduction to the Image Processing Toolkit.
-- Basic instructions explaining how to use the application.
+- A short explanation of the toolkit.
 - An independent image uploader.
-- An uploaded-image preview.
-- A simple caption, such as "This is the image you uploaded."
-- An appropriate message when no image is uploaded.
-- Appropriate handling of invalid or empty uploaded files.
+- Informational guidance when no image is uploaded.
+- Handling for empty and invalid image files.
+- An image preview using `channels="BGR"`.
+- The preview caption: "This is the image you uploaded."
 - A Download Output Image button.
 
-We do not want:
+The latest shared Home implementation uses early returns for missing or invalid images.
 
-- An advanced dashboard.
-- Complex image metadata tables.
-- Large diagnostics panels.
-- Unnecessary abstractions.
-- Features that distract from understanding image processing.
+Source extensions are obtained from the uploaded filename, and the download filename is constructed as `output.<extension>`.
 
-### Important issue: no-image handling
+### Home browser verification
 
-In the last posted Home code, the only `else` belongs to:
+I confirmed that all five checks passed:
 
-```python
-if data is not None:
-```
+1. Opening Home without an image displays guidance.
+2. Uploading a JPG displays its preview and caption.
+3. Downloading the JPG produces a valid output image.
+4. Uploading and downloading a PNG works.
+5. Empty or invalid image uploads display an error rather than crashing.
 
-There is no `else` for:
+**Consider the Home UI complete unless new evidence indicates a problem.**
 
-```python
-if image is not None:
-```
+## 7. Completed: Home documentation
 
-Therefore, the Home page needs a proper no-image state.
+I updated `docs/home.md` using a complete draft supplied in the previous conversation.
 
-Also, `cv2.imdecode()` can raise a `cv2.error` for empty encoded image data, while invalid nonempty bytes may return `None`.
-
-These cases should be handled appropriately without building a complicated error-handling framework.
-
-### Important issue: Home UI
-
-Home currently displays placeholder text:
-
-```python
-main_content.write("Inside Home Page")
-```
-
-This should eventually be replaced by a useful welcome experience.
-
-However, complete the download functionality and its verification first.
-
----
-
-## 13. Home documentation
-
-After Home UI is complete, we will finalize:
-
-```text
-docs/home.md
-```
-
-This Markdown file is displayed in the right-side documentation panel.
-
-It should explain:
+It now explains:
 
 - What the Image Processing Toolkit is.
-- Why the project is being developed.
-- Its educational goals.
-- How to navigate the toolkit.
-- How uploading and previewing work.
-- How processing pages are organized.
-- How output image downloading works.
-- Which image-processing features will be introduced later.
+- The educational purpose of the project.
+- How to upload, preview, and download an image.
+- The basic Home processing workflow.
+- Why downloaded images may differ from the original encoded files.
+- Which image-processing capabilities will be developed later.
+- The project's incremental development philosophy.
 
-The documentation should be concise and readable inside a relatively narrow panel.
+The documentation distinguishes current functionality from planned functionality.
 
-Do not describe unfinished features as though they already exist.
+The documentation for future image-processing operations will be written by me as we implement them.
 
----
+## 8. Completed: Main application cleanup
 
-## 14. Refactoring and cleanup after Home
+We reviewed and incrementally cleaned up `app.py`.
 
-Once Home and its documentation are complete, we will address the remaining cleanup items.
+Changes completed:
 
-Previously identified items include:
+**Removed debugging placeholders**
 
-- Obsolete debug text and placeholder code in `app.py`.
-- Unused imports or declarations.
-- Documentation paths dependent on the current working directory.
-- The session-state navigation key `"Function"`, which now includes Home.
-- README references to the old `pages/` structure.
-- Inaccurate descriptions of modules or features.
-- Placeholder function documentation.
-- Insufficient test coverage.
-- Git changes that should be reviewed and committed logically.
+We removed unnecessary `main_content.write()` statements that displayed placeholder text, blank content, and the selected page name.
 
-Do not treat minor naming cleanup as justification for broad architectural changes.
+**Removed unused imports**
 
-We want to finish the current architecture, not redesign it repeatedly.
+We removed the unused `get_image_formatted` import, the Streamlit logger import, and the unused `LOGGER` declaration.
 
----
+**Corrected documentation paths**
 
-## 15. Roadmap after Home and cleanup
+Documentation files are now located using `pathlib`.
 
-The first actual educational OpenCV operation will be:
+The documentation folder is constructed using:
 
-```python
-cv2.imread()
-```
+`pathlib.Path(__file__).resolve().parent / "docs"`
 
-Before implementing it, I want to understand:
+This avoids dependence on the working directory used to launch Streamlit.
+
+The path is constructed once, and `doc_panel.markdown(text)` is called after the conditional branches.
+
+**Renamed the session-state navigation key**
+
+We changed:
+
+`st.session_state["Function"]`
+
+to:
+
+`st.session_state["selected_page"]`
+
+throughout the shared `app.py`.
+
+The new name better describes the application's navigation state.
+
+### Navigation verification
+
+I confirmed all four tests passed:
+
+1. Home loads by default.
+2. Function1–Function4 open correctly.
+3. The selected page's documentation appears.
+4. Returning to Home displays its interface and documentation.
+
+These cleanups are complete.
+
+One optional wording issue remains: the invalid-page message currently says "Could not find selected_page" in the last posted code. It could be made more user-friendly, but this is not a functional blocker.
+
+## 9. Current status: README replacement
+
+The earlier `README.md` was outdated.
+
+It described an old architecture containing:
+
+- `pages/` rather than `views/`.
+- Category-specific processing directories that do not currently exist.
+- UI modules such as `ui/sidebar.py` and `ui/layout.py`, which are not part of our current implementation.
+
+In our most recent conversation, I requested a **complete updated README** that I could paste directly.
+
+ChatGPT supplied a full replacement that documents:
+
+- Project objectives and technologies.
+- Implemented Home functionality.
+- Placeholder Function1–Function4 pages.
+- The three-panel interface.
+- Current architecture.
+- Independent upload behavior.
+- Image processing and download workflow.
+- Installation and usage.
+- Testing.
+- Development principles and roadmap.
+- License information.
+
+**Important: I have not yet confirmed that this replacement README has actually been pasted into my project.**
+
+Therefore, the README should not automatically be considered updated or verified.
+
+If I attach a new ZIP, inspect the actual README and check whether it accurately represents the implementation.
+
+Do not assume the earlier ZIP contains the changes made after it was uploaded.
+
+## 10. Remaining cleanup
+
+After reviewing the README, our remaining potential cleanup includes:
+
+- Verifying the README matches the current project.
+- Reviewing placeholder processing-page documentation.
+- Reviewing current automated tests and identifying meaningful gaps.
+- Checking minor unused code or inaccurate descriptions where justified.
+- Reviewing dependencies and Git changes where appropriate.
+- Organizing logical commits.
+
+The earlier ZIP contained one pytest test that confirmed `process_function1()` returned an unchanged NumPy array.
+
+Keep cleanup incremental and practical. Do not spend excessive time on cosmetic details or continually redesign the application.
+
+## 11. Next major milestone: First OpenCV operation
+
+After completing the necessary cleanup, we will start our first actual educational OpenCV operation:
+
+**`cv2.imread()`**
+
+Before implementation, I want to thoroughly understand:
 
 - `cv2.imread()` versus `cv2.imdecode()`.
-- File paths versus encoded image bytes.
+- Filesystem paths versus encoded image bytes.
 - How image decoding works.
-- How OpenCV represents images using NumPy arrays.
+- NumPy representations of images.
 - BGR versus RGB.
 - Grayscale representations.
 - `IMREAD_COLOR`, `IMREAD_GRAYSCALE`, and `IMREAD_UNCHANGED`.
-- Decoding failures and file-reading failures.
-- Inspecting image properties.
-- How to demonstrate `cv2.imread()` in Streamlit without unnecessary temporary-file workflows.
+- Image shape, dimensions, pixel values, and data types.
+- Image reading and decoding failures.
+- How to demonstrate `cv2.imread()` within our existing Streamlit architecture without unnecessary temporary-file workflows.
 
-Later topics may include:
+Please explain the relevant concepts before proposing implementation.
 
-- Image writing.
-- Color conversion.
-- Resizing.
-- Thresholding.
-- Filtering.
-- Additional OpenCV operations.
-- Video and video-frame processing.
+I want to implement the educational processing logic myself, then have you review my code and documentation.
 
-Conceptual explanations should precede implementation.
+Later topics will include image writing, color conversions, resizing, thresholding, filtering, and eventually video processing.
 
----
+Do not jump ahead to those features.
 
-## 16. Current priorities — In order
+## 12. Exactly where to resume
 
-Our agreed order is:
+Our current progress is:
 
-**Completed:** Independent upload architecture and browser verification.
+- Independent uploads: Complete and browser-verified.
+- Home image decoding and downloading: Complete and browser-verified.
+- Home UI: Complete.
+- Home documentation: Updated.
+- `app.py` cleanup: Complete.
+- Documentation path correction: Complete.
+- Session-state navigation rename: Complete and browser-verified.
+- README replacement: Draft provided, application not yet confirmed.
+- Remaining cleanup and test coverage: Pending.
+- First educational OpenCV operation (`cv2.imread()`): Not yet started.
 
-**Current:** Home page download functionality and testing.
+**Please resume from the README review / remaining project cleanup stage.**
 
-**Next:** Complete Home UI, including welcome content and appropriate upload/error states.
+If an updated ZIP is attached, examine it before deciding the smallest next task.
 
-**Then:** Finalize Home documentation.
+Do not regenerate the application, do not change our settled architecture, and do not ask me to re-explain previous decisions.
 
-**Afterward:** Remaining refactoring and cleanup.
-
-**Finally:** Start the first actual OpenCV operation, `cv2.imread()`.
-
-Please do not jump ahead to later features before stabilizing the current stage.
-
----
-
-## 17. Exactly how to resume in this new chat
-
-Please perform the following:
-
-1. Inspect the newly attached project ZIP.
-2. Review `views/home_page.py` and `utils/ui_utils.py`.
-3. Compare the actual implementation with the latest code and decisions in this handoff.
-4. Confirm whether the two previously identified download-button bugs are already fixed.
-5. Identify the smallest remaining issue in getting the Home output-download workflow working.
-6. Explain the problem, the concept behind it, and the minimal correction.
-7. Let me implement the correction and return with my code or test results.
-8. Review my changes before moving on.
-
-Do not regenerate the application.
-
-Do not propose a new application architecture.
-
-Do not ask me to re-explain our goals, page structure, or existing decisions.
-
-Do not assume that every code example above is identical to the latest ZIP.
-
-**Our immediate objective is to finish and verify Home's output-image download functionality, then complete the Home UI and documentation, one manageable issue at a time.**
-
-Please begin by reviewing the latest uploaded code and telling me whether the Home download implementation is correct or what the next smallest correction should be.
+Continue acting as my technical mentor and code reviewer, one manageable issue at a time.

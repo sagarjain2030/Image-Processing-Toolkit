@@ -1,270 +1,466 @@
 # Image Processing Toolkit
 
-An interactive web-based image processing toolkit for experimenting with image transformations, analysis techniques, filtering operations, feature extraction, and other computer vision primitives.
+An interactive, educational image-processing application built using **Python, OpenCV, NumPy, and Streamlit**.
 
-The application provides a visual interface where operations can be selected, configured through their available parameters, executed on user-provided images, and inspected directly from the browser.
+The Image Processing Toolkit is a long-term learning project focused on understanding fundamental image-processing concepts through practical implementation and visual experimentation.
 
-Each operation is accompanied by contextual documentation describing the available parameters and their behavior.
+Rather than simply applying predefined image-processing operations, the objective is to explore **how digital images are represented, read, processed, and transformed**.
+
+The project is being developed incrementally, with an emphasis on clear implementation, modular architecture, and accompanying educational documentation.
+
+> **Project Status:** Active development. The Home page supports image uploading, previewing, and downloading. Dedicated image-processing operations will be introduced progressively.
+
+---
+
+## Technologies
+
+The project uses:
+
+- **Python** — Primary programming language.
+- **OpenCV (`cv2`)** — Image processing and computer vision operations.
+- **NumPy** — Image representation and array manipulation.
+- **Streamlit** — Interactive web interface.
+- **pytest** — Automated testing.
+- **Git** — Version control.
+
+---
+
+## Current Functionality
+
+### Home Page
+
+The Home page provides a basic image input and output workflow.
+
+Currently implemented features include:
+
+- Uploading PNG, JPG, and JPEG images.
+- Previewing uploaded images.
+- Decoding uploaded images into NumPy arrays using OpenCV.
+- Encoding output images for downloading.
+- Downloading images in the same format as the uploaded image.
+- Handling missing, empty, and invalid image uploads.
+- Displaying contextual documentation alongside the workspace.
+
+The Home page currently performs no image-processing transformations. The decoded input image also serves as the output image.
+
+The downloaded image is re-encoded using OpenCV and may not be byte-for-byte identical to the original uploaded file.
+
+### Processing Pages
+
+The application currently contains four placeholder processing pages:
+
+- Function1
+- Function2
+- Function3
+- Function4
+
+Each page has an independent image uploader and a corresponding processing module.
+
+These pages establish the basic structure for future operations. Their current processing functions return the input image without applying transformations.
+
+As development progresses, these placeholders will be replaced or extended with educational OpenCV operations.
 
 ---
 
 ## Application Layout
 
-The interface is divided into three primary areas.
+The Streamlit application is organized into three primary areas.
 
 ```text
-┌───────────────────┬───────────────────────────────┬───────────────────────┐
-│                   │                               │                       │
-│    Navigation     │        Workspace              │     Documentation     │
-│                   │                               │                       │
-│  Operation groups │  Input image                  │  Operation overview   │
-│                   │                               │                       │
-│  Available        │  Parameters                   │  Parameter meanings   │
-│  operations       │                               │                       │
-│                   │  Execute operation            │  Usage information    │
-│                   │                               │                       │
-│                   │  Result                       │  Additional notes      │
-│                   │                               │                       │
-└───────────────────┴───────────────────────────────┴───────────────────────┘
++------------------+---------------------------+--------------------+
+|                  |                           |                    |
+|    Navigation    |         Workspace         |   Documentation    |
+|                  |                           |                    |
+|    Home          |    Image Upload           |    Page Overview   |
+|                  |                           |                    |
+|    Function1     |    Image Preview          |    Concepts        |
+|    Function2     |                           |                    |
+|    Function3     |    Processing Controls    |    Explanations    |
+|    Function4     |                           |                    |
+|                  |    Output and Download    |    Usage Notes     |
+|                  |                           |                    |
++------------------+---------------------------+--------------------+
 ```
 
-The left navigation area is used to select an image-processing operation.
+### Left Sidebar — Navigation
 
-The central workspace contains the inputs and parameters required by the selected operation and displays its resulting output.
+Provides navigation between the Home page and processing pages.
 
-The documentation area presents contextual information loaded from Markdown documentation associated with the currently selected operation.
+### Middle Workspace — Interactive Interface
+
+Displays the interface associated with the selected page.
+
+Depending on the operation, the workspace may contain image uploaders, previews, processing parameters, output images, and download controls.
+
+### Right Panel — Documentation
+
+Displays Markdown documentation corresponding to the selected page.
+
+Documentation is maintained separately from the application's Python implementation.
 
 ---
 
-## Architecture
+## Application Architecture
 
-The project separates image-processing logic from the web interface.
+The project follows a modular architecture that separates image-processing logic from the Streamlit interface.
+
+The main components are:
+
+### 1. Application Layer — `app.py`
+
+Responsible for:
+
+- Streamlit application configuration.
+- Sidebar navigation.
+- Page selection.
+- Application layout.
+- Rendering the selected view.
+- Loading and displaying page-specific documentation.
+
+The selected page is maintained through Streamlit session state.
+
+### 2. View Layer — `views/`
+
+Contains Streamlit interface implementations.
 
 ```text
-                         app.py
-                            │
-                            ▼
-                       UI Layer
-                            │
-                            ▼
-                       Page Layer
-                            │
-                            ▼
-                Image Processing Layer
+views/
+├── home_page.py
+├── function1_page.py
+├── function2_page.py
+├── function3_page.py
+└── function4_page.py
 ```
 
-This separation keeps processing functions independent of the presentation framework.
+Each view is responsible for:
 
-### Image Processing Layer
+- Presenting its interface.
+- Accepting user input.
+- Invoking the corresponding processing functionality.
+- Displaying images and processing results.
+- Providing download controls where implemented.
+
+Image-processing algorithms remain outside the view layer.
+
+### 3. Image Processing Layer — `image_processing/`
+
+Contains image-processing implementations independent of Streamlit.
 
 ```text
 image_processing/
+├── process1_function.py
+├── process2_function.py
+├── process3_function.py
+└── process4_function.py
 ```
 
-Contains the actual image-processing implementations.
+Functions in this layer operate on image data and processing parameters without depending on the web interface.
 
-Functions in this layer should operate on image data and parameters without depending on the web UI.
+Currently, these modules contain placeholder implementations.
 
-Example:
+Future processing functionality will be introduced incrementally.
+
+### 4. Shared Utilities — `utils/`
+
+Contains reusable functionality and application mappings.
 
 ```text
-image_processing/
-└── geometric/
-    └── resize.py
+utils/
+├── constants.py
+└── ui_utils.py
 ```
 
----
+**`constants.py`**
 
-### Page Layer
+Maintains mappings used for navigation, view selection, and documentation selection.
 
-```text
-pages/
-```
+**`ui_utils.py`**
 
-Contains the user-interface definition associated with each operation.
+Contains shared image-handling utilities, including:
 
-A page is responsible for collecting parameters, invoking the corresponding image-processing function, and presenting its result.
+- Image uploading.
+- Image decoding.
+- Output image encoding for downloading.
 
-Example:
+These utilities reduce duplication between individual views.
 
-```text
-pages/
-└── geometric/
-    └── resize_page.py
-```
+### 5. Documentation Layer — `docs/`
 
----
-
-### Documentation Layer
+Contains Markdown documentation for the Home page and processing pages.
 
 ```text
 docs/
+├── home.md
+├── function1.md
+├── function2.md
+├── function3.md
+└── function4.md
 ```
 
-Contains Markdown documentation for individual operations.
+The documentation for the selected page appears in the application's right-side panel.
 
-Documentation may describe the operation itself, available parameters, valid values, behavior, usage considerations, and other relevant information.
+As processing functionality is introduced, its documentation will explain the underlying concepts, parameters, implementation details, and expected results.
 
-Example:
+### 6. Tests — `tests/`
 
-```text
-docs/
-└── geometric/
-    └── resize.md
-```
+Contains automated tests for verifying processing behavior.
 
-The documentation for the currently selected operation is displayed alongside its interactive workspace.
-
----
-
-### Shared UI Layer
-
-```text
-ui/
-```
-
-Contains reusable presentation and navigation functionality.
-
-```text
-ui/
-├── sidebar.py
-├── layout.py
-└── common.py
-```
-
-`sidebar.py` manages application navigation.
-
-`layout.py` defines the common workspace and documentation layout.
-
-`common.py` contains reusable UI components shared by multiple operations.
-
-Individual image-processing implementations should not depend on this layer.
-
----
-
-## Operation Organization
-
-Operations are organized by image-processing domain.
-
-```text
-image_processing/
-├── image_io/
-├── image_properties/
-├── geometric/
-├── color/
-├── filtering/
-├── thresholding/
-├── morphology/
-├── edge_detection/
-├── histograms/
-├── contours/
-├── drawing/
-└── feature_detection/
-```
-
-The `views` and `docs/` directories follow the same organization.
-
-For example, a geometric resize operation is represented by:
-
-```text
-image_processing/geometric/resize.py
-pages/geometric/resize_page.py
-docs/geometric/resize.md
-```
-
-This keeps the processing implementation, interactive interface, and documentation independently maintainable while preserving a predictable project structure.
+Testing coverage will expand as new image-processing operations are implemented.
 
 ---
 
 ## Project Structure
 
 ```text
-image-processing-toolkit/
+Image-Processing-Toolkit/
 │
-├── README.md
 ├── app.py
+├── README.md
 ├── requirements.txt
+├── LICENSE
 ├── .gitignore
 │
-├── image_processing/
-│   ├── image_io/
-│   ├── image_properties/
-│   ├── geometric/
-│   ├── color/
-│   ├── filtering/
-│   ├── thresholding/
-│   ├── morphology/
-│   ├── edge_detection/
-│   ├── histograms/
-│   ├── contours/
-│   ├── drawing/
-│   └── feature_detection/
+├── views/
+│   ├── __init__.py
+│   ├── home_page.py
+│   ├── function1_page.py
+│   ├── function2_page.py
+│   ├── function3_page.py
+│   └── function4_page.py
 │
-├── pages/
-│   ├── image_io/
-│   ├── image_properties/
-│   ├── geometric/
-│   ├── color/
-│   ├── filtering/
-│   ├── thresholding/
-│   ├── morphology/
-│   ├── edge_detection/
-│   ├── histograms/
-│   ├── contours/
-│   ├── drawing/
-│   └── feature_detection/
+├── image_processing/
+│   ├── __init__.py
+│   ├── process1_function.py
+│   ├── process2_function.py
+│   ├── process3_function.py
+│   └── process4_function.py
+│
+├── utils/
+│   ├── __init__.py
+│   ├── constants.py
+│   └── ui_utils.py
 │
 ├── docs/
-│   ├── image_io/
-│   ├── image_properties/
-│   ├── geometric/
-│   ├── color/
-│   ├── filtering/
-│   ├── thresholding/
-│   ├── morphology/
-│   ├── edge_detection/
-│   ├── histograms/
-│   ├── contours/
-│   ├── drawing/
-│   └── feature_detection/
+│   ├── home.md
+│   ├── function1.md
+│   ├── function2.md
+│   ├── function3.md
+│   └── function4.md
 │
-├── ui/
-│   ├── sidebar.py
-│   ├── layout.py
-│   └── common.py
+├── tests/
+│   ├── __init__.py
+│   └── test_processing.py
 │
 ├── assets/
+│   └── img/
 │
-└── tests/
+└── ui/
+    └── __init__.py
 ```
 
----
-
-## Design Principles
-
-The processing layer remains independent of the web framework.
-
-Each image-processing operation has a focused implementation.
-
-UI-specific behavior remains outside processing modules.
-
-Operation documentation is stored as Markdown rather than embedded into application code.
-
-The directory structure mirrors operation categories across processing, interface, and documentation layers.
-
-Shared UI functionality is implemented once and reused across operation pages.
-
-The architecture is intended to allow new image-processing operations to be added without requiring changes to unrelated implementations.
+The `ui/` directory is currently reserved and does not contain separate navigation or layout implementations. These responsibilities are handled by `app.py`.
 
 ---
 
-## Technology
+## Image Processing Workflow
 
-The toolkit is designed around:
+The application uses a consistent workflow for image input and output.
 
-* Python
-* OpenCV
-* NumPy
-* Streamlit
+```text
+Upload Image
+     |
+     v
+Read Uploaded File Bytes
+     |
+     v
+Decode Image Using OpenCV
+     |
+     v
+Represent Image as NumPy Array
+     |
+     v
+Display Input Image
+     |
+     v
+Apply Processing Operation
+     |
+     v
+Display Output Image
+     |
+     v
+Encode and Download Output
+```
 
-Additional dependencies may be introduced as new image-processing capabilities are added.
+Processing operations will provide their own controls and transformations while following this common workflow.
+
+Currently, the Home page uses the decoded input image directly as its output.
+
+### Independent Image Uploads
+
+Each view maintains its own image uploader.
+
+When navigating away from a page and returning later, the previous upload is cleared.
+
+This keeps individual processing pages independent and prevents unintended reuse of uploaded images across operations.
+
+---
+
+## Installation and Setup
+
+### 1. Prerequisites
+
+Install Python and ensure it is available from your terminal.
+
+### 2. Navigate to the Project Directory
+
+```bash
+cd Image-Processing-Toolkit
+```
+
+### 3. Create a Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+Activate the environment.
+
+**Windows:**
+
+```bash
+.venv\Scripts\activate
+```
+
+**Linux/macOS:**
+
+```bash
+source .venv/bin/activate
+```
+
+### 4. Install Dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 5. Run the Application
+
+```bash
+streamlit run app.py
+```
+
+Streamlit will start the application and provide a local URL for accessing it through your browser.
+
+---
+
+## Using the Toolkit
+
+1. Launch the Streamlit application.
+2. Open the **Home** page.
+3. Upload a PNG, JPG, or JPEG image.
+4. Preview the uploaded image.
+5. Download the output image using the **Download Output Image** button.
+6. Use the sidebar to explore other pages.
+7. Read the corresponding documentation in the right-side panel.
+
+Additional interactive processing capabilities will be introduced as development progresses.
+
+---
+
+## Testing
+
+Automated tests are maintained in the `tests/` directory.
+
+Install pytest if it is not already available:
+
+```bash
+python -m pip install pytest
+```
+
+Run the tests from the project root:
+
+```bash
+python -m pytest
+```
+
+The current test coverage is limited and will be expanded as image-processing operations are developed.
+
+---
+
+## Development Principles
+
+The project follows these principles:
+
+- **Incremental development:** Introduce and verify functionality in manageable steps.
+- **Educational understanding:** Understand the concepts behind each operation before implementing it.
+- **Separation of responsibilities:** Keep image-processing logic independent of Streamlit.
+- **Reusability:** Share common upload, decoding, and downloading functionality.
+- **Simplicity:** Avoid unnecessary abstractions and architectural complexity.
+- **Documentation:** Maintain educational explanations alongside processing functionality.
+- **Testing:** Verify implementations through automated tests and interactive application checks.
+- **Maintainability:** Preserve a clear, organized project structure.
+
+The objective is to build a toolkit that is both practical and useful for learning.
+
+---
+
+## Development Roadmap
+
+The following topics are planned for future development.
+
+### Image Input and Output
+
+- Reading images using OpenCV.
+- Understanding image decoding.
+- Writing and saving images.
+- Understanding image file formats.
+
+### Image Representation
+
+- Representing images using NumPy arrays.
+- Image dimensions, shapes, and data types.
+- Pixel values and channels.
+- Grayscale and color images.
+
+### Image Processing Operations
+
+- Color-space conversions.
+- Image resizing.
+- Geometric transformations.
+- Thresholding.
+- Image filtering.
+- Additional fundamental computer vision operations.
+
+### Future Extensions
+
+- Expanded automated testing.
+- Additional interactive processing controls.
+- Video processing.
+- Video-frame manipulation.
+
+These features are planned and should not be considered implemented until their respective development stages are complete.
+
+---
+
+## Project Objective
+
+The Image Processing Toolkit aims to provide a structured, hands-on environment for understanding image processing using Python and OpenCV.
+
+Each new operation will be approached by exploring:
+
+- What the operation does.
+- Why the operation is useful.
+- How it works conceptually.
+- How OpenCV implements it.
+- How to use it correctly.
+- How to verify its behavior.
+
+The long-term objective is to develop a growing collection of understandable, independently maintainable, and well-documented image-processing operations.
+
+This project is a work in progress and will continue to evolve through incremental development.
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.

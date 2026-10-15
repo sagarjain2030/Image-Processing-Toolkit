@@ -1,10 +1,6 @@
 import streamlit as st
-from streamlit.logger import get_logger
-
+import pathlib
 from utils.constants import sidebar_dictionary,function_dictionary, doc_file_dictionary
-from utils.ui_utils import get_image_formatted
-
-LOGGER = get_logger(__name__)
 
 def define_configs():
     st.set_page_config (
@@ -12,22 +8,19 @@ def define_configs():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    if "Function" not in st.session_state:
-        st.session_state["Function"] = "Home"
+    if "selected_page" not in st.session_state:
+        st.session_state["selected_page"] = "Home"
 
 def set_homepage():
     header = st.container()
     header.title("Image Processing Toolkit")
 
 def create_main_content(main_content):
-    main_content.write("This is where we show content")
-    main_content.write("")
-    if st.session_state["Function"] is not None:
-        main_content.write(st.session_state["Function"])
+    if st.session_state["selected_page"] is not None:
         try :
-            s = function_dictionary[st.session_state["Function"]]
+            s = function_dictionary[st.session_state["selected_page"]]
         except KeyError :
-            main_content.write("Could not find function")
+            main_content.write("Could not find selected_page")
         else:
             s(main_content)
 
@@ -39,15 +32,17 @@ def load_documentation(file_path):
         return "### File not found"
 
 def create_doc_content(doc_panel):
-    if st.session_state["Function"] is not None:
-        text = load_documentation("docs/" + doc_file_dictionary[st.session_state["Function"]])
-        doc_panel.markdown(text)
+    file_folder_path = pathlib.Path(__file__).resolve().parent / "docs"
+    if st.session_state["selected_page"] is not None:
+        text = load_documentation(
+            file_folder_path / doc_file_dictionary[st.session_state["selected_page"]]
+        )
     else:
-        text = load_documentation("docs/home.md")
-        doc_panel.markdown(text)
+        text = load_documentation(file_folder_path / "home.md")
+    doc_panel.markdown(text)
 
 def on_click_function(string:str,):
-    st.session_state["Function"] = string
+    st.session_state["selected_page"] = string
 
 def add_sidebar_menu():
     st.sidebar.header("Functionalities")
